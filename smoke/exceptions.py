@@ -42,6 +42,12 @@ class ExceptionMiddleware(object):
 
 
 class EmailExceptionMiddleware(ExceptionMiddleware):
+    """This is an Example, In production, It's better not send emails in sync mode.
+    Because sending emails maybe slow, this will block your web app.
+    So, the best practices is write your own EmailExceptionMiddleware,
+    In this class, It's handle_exception method not send mail directly,
+    You shoul use MQ, or something else.
+    """
     def __init__(self,
                  wrap_app,
                  smoke_html=False,
@@ -67,5 +73,16 @@ class EmailExceptionMiddleware(ExceptionMiddleware):
 
 
     def handle_exception(self, tb_exc, exc_info):
-        pass
+        from smoke.functional import send_mail
+        send_mail(
+            self.smtp_server,
+            self.smtp_port,
+            self.smtp_username,
+            self.smtp_password,
+            self.from_address,
+            self.to_address,
+            '{0} Error Occurred'.format(self.mail_subject_prefix if self.mail_subject_prefix else ''),
+            tb_exc,
+            'html'
+        )
 
